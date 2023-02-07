@@ -3,6 +3,7 @@ import isaacgym
 assert isaacgym
 import torch
 import numpy as np
+import os
 
 import glob
 import pickle as pkl
@@ -31,8 +32,7 @@ def load_policy(logdir):
 
 def load_env(label, headless=False):
     dirs = glob.glob(f"../runs/{label}/*")
-    logdir = sorted(dirs)[0]
-
+    logdir =f"runs/{label}/025417.456545"
     with open(logdir + "/parameters.pkl", 'rb') as file:
         pkl_cfg = pkl.load(file)
         print(pkl_cfg.keys())

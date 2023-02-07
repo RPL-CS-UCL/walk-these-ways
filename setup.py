@@ -13,7 +13,7 @@ setup(
                       'ml_dash==0.3.20',
                       'jaynes==0.9.2',
                       'params-proto==2.10.5',
-                      'gym==0.14.0',
+                      #'gym==0.14.0',
                       'tqdm',
                       'matplotlib',
                       'numpy==1.23.5'
