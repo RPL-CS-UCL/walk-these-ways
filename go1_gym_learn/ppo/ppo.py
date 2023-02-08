@@ -28,6 +28,7 @@ class PPO_Args(PrefixProto):
     lam = 0.95
     desired_kl = 0.01
     max_grad_norm = 1.
+    
 
 
 class PPO:

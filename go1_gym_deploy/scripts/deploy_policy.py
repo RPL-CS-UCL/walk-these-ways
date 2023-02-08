@@ -2,6 +2,7 @@ import glob
 import pickle as pkl
 import lcm
 import sys
+import os
 
 from go1_gym_deploy.utils.deployment_runner import DeploymentRunner
 from go1_gym_deploy.envs.lcm_agent import LCMAgent
@@ -14,8 +15,10 @@ lc = lcm.LCM("udpm://239.255.76.67:7667?ttl=255")
 
 def load_and_run_policy(label, experiment_name, max_vel=1.0, max_yaw_vel=1.0):
     # load agent
-    dirs = glob.glob(f"../../runs/{label}/*")
-    logdir = sorted(dirs)[0]
+    #dirs = glob.glob(f"../../runs/{label}/*")
+    #home_dir = os.path.expanduser('~')
+
+    logdir ='runs/'+label+'/025417.456545'
 
     with open(logdir+"/parameters.pkl", 'rb') as file:
         pkl_cfg = pkl.load(file)
@@ -27,7 +30,7 @@ def load_and_run_policy(label, experiment_name, max_vel=1.0, max_yaw_vel=1.0):
     se = StateEstimator(lc)
 
     control_dt = 0.02
-    command_profile = RCControllerProfile(dt=control_dt, state_estimator=se, x_scale=max_vel, y_scale=0.6, yaw_scale=max_yaw_vel)
+    command_profile = RCControllerProfile(dt=control_dt, state_estimator=se, x_scale=max_vel, y_scale=0.3, yaw_scale=max_yaw_vel)
 
     hardware_agent = LCMAgent(cfg, se, command_profile)
     se.spin()
@@ -61,9 +64,9 @@ def load_policy(logdir):
 
     def policy(obs, info):
         i = 0
-        latent = adaptation_module.forward(obs["obs_history"].to('cpu'))
-        action = body.forward(torch.cat((obs["obs_history"].to('cpu'), latent), dim=-1))
-        info['latent'] = latent
+        #latent = adaptation_module.forward(obs["obs_history"].to('cpu'))
+        action = body.forward(obs["obs_history"].to('cpu'))
+        #info['latent'] = latent
         return action
 
     return policy
@@ -74,4 +77,4 @@ if __name__ == '__main__':
 
     experiment_name = "example_experiment"
 
-    load_and_run_policy(label, experiment_name=experiment_name, max_vel=3.5, max_yaw_vel=5.0)
+    load_and_run_policy(label, experiment_name=experiment_name, max_vel=1.0, max_yaw_vel=1.0)

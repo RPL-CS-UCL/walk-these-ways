@@ -212,10 +212,10 @@ class Cfg(PrefixProto, cli=False):
         stiffness = {'joint_a': 10.0, 'joint_b': 15.}  # [N*m/rad]
         damping = {'joint_a': 1.0, 'joint_b': 1.5}  # [N*m*s/rad]
         # action scale: target angle = actionScale * action + defaultAngle
-        action_scale = 0.5
+        action_scale = 9
         hip_scale_reduction = 1.0
         # decimation: Number of control action updates @ sim DT per policy DT
-        decimation = 4
+        decimation = 1
 
     class asset(PrefixProto, cli=False):
         file = ""
@@ -263,7 +263,7 @@ class Cfg(PrefixProto, cli=False):
         gravity_impulse_duration = 1.0
         randomize_gravity = False
         gravity_range = [-1.0, 1.0]
-        push_robots = True
+        push_robots = False
         push_interval_s = 15
         max_push_vel_xy = 1.
         randomize_lag_timesteps = True
@@ -400,7 +400,7 @@ class Cfg(PrefixProto, cli=False):
         lookat = [11., 5, 3.]  # [m]
 
     class sim(PrefixProto, cli=False):
-        dt = 0.005
+        dt = 0.02
         substeps = 1
         gravity = [0., 0., -9.81]  # [m/s^2]
         up_axis = 1  # 0 is y, 1 is z
@@ -412,10 +412,10 @@ class Cfg(PrefixProto, cli=False):
             solver_type = 1  # 0: pgs, 1: tgs
             num_position_iterations = 4
             num_velocity_iterations = 0
-            contact_offset = 0.01  # [m]
+            contact_offset = 0.02  # [m]
             rest_offset = 0.0  # [m]
-            bounce_threshold_velocity = 0.5  # 0.5 [m/s]
-            max_depenetration_velocity = 1.0
-            max_gpu_contact_pairs = 2 ** 23  # 2**24 -> needed for 8000 envs and more
-            default_buffer_size_multiplier = 5
-            contact_collection = 2  # 0: never, 1: last sub-step, 2: all sub-steps (default=2)
+            bounce_threshold_velocity = 0.2 # 0.5 [m/s]
+            max_depenetration_velocity = 100.0
+            max_gpu_contact_pairs = 8388608 # 2**24 -> needed for 8000 envs and more
+            default_buffer_size_multiplier = 5.0
+            contact_collection = 1 # 0: never, 1: last sub-step, 2: all sub-steps (default=2)

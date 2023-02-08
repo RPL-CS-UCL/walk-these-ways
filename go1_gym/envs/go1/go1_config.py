@@ -27,17 +27,19 @@ def config_go1(Cnfg: Union[Cfg, Meta]):
     }
 
     _ = Cnfg.control
-    _.control_type = 'P'
+    _.control_type = 'T'
     _.stiffness = {'joint': 20.}  # [N*m/rad]
     _.damping = {'joint': 0.5}  # [N*m*s/rad]
     # action scale: target angle = actionScale * action + defaultAngle
-    _.action_scale = 0.25
+    _.action_scale = 9
     _.hip_scale_reduction = 0.5
     # decimation: Number of control action updates @ sim DT per policy DT
-    _.decimation = 4
+    _.decimation = 1
 
     _ = Cnfg.asset
-    _.file = '{MINI_GYM_ROOT_DIR}/resources/robots/go1/urdf/go1.urdf'
+    #_.file = '{MINI_GYM_ROOT_DIR}/resources/robots/go1/urdf/go1.urdf'
+   #_.file = '{MINI_GYM_ROOT_DIR}/resources/robots/a1/urdf/a1_unitree_modified_no_joint_dynamics.urdf'
+    _.file = '{MINI_GYM_ROOT_DIR}/resources/robots/a1/urdf/a1_unitree.urdf'
     _.foot_name = "foot"
     _.penalize_contacts_on = ["thigh", "calf"]
     _.terminate_after_contacts_on = ["base"]
@@ -89,7 +91,7 @@ def config_go1(Cnfg: Union[Cfg, Meta]):
     _.randomize_base_mass = True
     _.added_mass_range = [-1, 3]
     _.push_robots = False
-    _.max_push_vel_xy = 0.5
+    _.max_push_vel_xy = 0.0
     _.randomize_friction = True
     _.friction_range = [0.05, 4.5]
     _.randomize_restitution = True

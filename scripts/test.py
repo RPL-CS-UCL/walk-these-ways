@@ -17,10 +17,11 @@ def run_env(render=False, headless=False):
 
     Cfg.commands.num_lin_vel_bins = 30
     Cfg.commands.num_ang_vel_bins = 30
-    Cfg.curriculum_thresholds.tracking_ang_vel = 0.7
+    Cfg.curriculum_thresholds.tracking_ang_vel = 0.0
     Cfg.curriculum_thresholds.tracking_lin_vel = 0.8
     Cfg.curriculum_thresholds.tracking_contacts_shaped_vel = 0.9
     Cfg.curriculum_thresholds.tracking_contacts_shaped_force = 0.9
+    Cfg.control.action_scale = 9
 
     Cfg.commands.distributional_commands = True
 
@@ -122,8 +123,8 @@ def run_env(render=False, headless=False):
     Cfg.reward_scales.collision = -5.0
 
     Cfg.commands.lin_vel_x = [-1.0, 1.0]
-    Cfg.commands.lin_vel_y = [-0.6, 0.6]
-    Cfg.commands.ang_vel_yaw = [-1.0, 1.0]
+    Cfg.commands.lin_vel_y = [-0.1, 0.1]
+    Cfg.commands.ang_vel_yaw = [0.0, 0.1]
     Cfg.commands.body_height_cmd = [-0.25, 0.15]
     Cfg.commands.gait_frequency_cmd_range = [1.5, 4.0]
     Cfg.commands.gait_phase_cmd_range = [0.0, 1.0]
@@ -183,7 +184,7 @@ def run_env(render=False, headless=False):
 
     Cfg.domain_rand.lag_timesteps = 6
     Cfg.domain_rand.randomize_lag_timesteps = True
-    Cfg.control.control_type = "actuator_net"
+    Cfg.control.control_type = "T"
 
     env = VelocityTrackingEasyEnv(sim_device='cuda:0', headless=False, cfg=Cfg)
     env.reset()
