@@ -25,6 +25,12 @@ def load_and_run_policy(label, experiment_name, max_vel=1.0, max_yaw_vel=1.0):
         print(pkl_cfg.keys())
         cfg = pkl_cfg["Cfg"]
         print(cfg.keys())
+    cfg['control']['action_scale'] = 9 
+    cfg['control']['decimation'] = 1
+
+    check = cfg
+
+
 
 
     se = StateEstimator(lc)

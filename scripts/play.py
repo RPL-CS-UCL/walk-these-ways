@@ -44,16 +44,9 @@ def load_policy(logdir):
 
 
 def load_env(label, headless=False):
-   
-    logdir ="runs/"+label
-
-    # get current directory
-  
-    #logdir = os.path.abspath(os.path.join(dir, os.pardir))
-
-
-
-    with open(logdir + "/025417.456545/parameters.pkl", 'rb') as file:
+    dirs = glob.glob(f"../runs/{label}/*")
+    logdir =f"runs/{label}/025417.456545"
+    with open(logdir + "/parameters.pkl", 'rb') as file:
         pkl_cfg = pkl.load(file)
         print(pkl_cfg.keys())
         cfg = pkl_cfg["Cfg"]
@@ -65,37 +58,37 @@ def load_env(label, headless=False):
                     setattr(getattr(Cfg, key), key2, value2)
 
     # turn off DR for evaluation script
-    Cfg.domain_rand.push_robots = False
-    Cfg.domain_rand.randomize_friction = True
-    Cfg.domain_rand.randomize_gravity = False
-    Cfg.domain_rand.randomize_restitution = False
-    Cfg.domain_rand.randomize_motor_offset = False
-    Cfg.domain_rand.randomize_motor_strength = False
-    Cfg.domain_rand.randomize_friction_indep = False
-    Cfg.domain_rand.randomize_ground_friction = False
-    Cfg.domain_rand.randomize_base_mass = False
-    Cfg.domain_rand.randomize_Kd_factor = False
-    Cfg.domain_rand.randomize_Kp_factor = False
-    Cfg.domain_rand.randomize_joint_friction = False
-    Cfg.domain_rand.randomize_com_displacement = False
+    # Cfg.domain_rand.push_robots = False
+    # Cfg.domain_rand.randomize_friction = False
+    # Cfg.domain_rand.randomize_gravity = False
+    # Cfg.domain_rand.randomize_restitution = False
+    # Cfg.domain_rand.randomize_motor_offset = False
+    # Cfg.domain_rand.randomize_motor_strength = False
+    # Cfg.domain_rand.randomize_friction_indep = False
+    # Cfg.domain_rand.randomize_ground_friction = False
+    # Cfg.domain_rand.randomize_base_mass = False
+    # Cfg.domain_rand.randomize_Kd_factor = False
+    # Cfg.domain_rand.randomize_Kp_factor = False
+    # Cfg.domain_rand.randomize_joint_friction = False
+    # Cfg.domain_rand.randomize_com_displacement = False
 
     Cfg.env.num_recording_envs = 1
     Cfg.env.num_envs = 1
     Cfg.terrain.num_rows = 5
     Cfg.terrain.num_cols = 5
-    Cfg.terrain.border_size = 0
-    Cfg.terrain.center_robots = True
-    Cfg.terrain.center_span = 1
+    # Cfg.terrain.border_size = 0
+    # Cfg.terrain.center_robots = True
+    # Cfg.terrain.center_span = 1
     #Cfg.terrain.teleport_robots = True
     Cfg.control.action_scale = 9
-    Cfg.commands.limit_vel_x = [0.0, 0.0]
-    Cfg.commands.limit_vel_y = [0.0, 0.0]
-    Cfg.commands.limit_vel_yaw = [0.0, 0.0]
+    # Cfg.commands.limit_vel_x = [0.0, 0.0]
+    # Cfg.commands.limit_vel_y = [0.0, 0.0]
+    # Cfg.commands.limit_vel_yaw = [0.0, 0.0]
     Cfg.sim.dt =0.002
 
-    Cfg.domain_rand.lag_timesteps = 0
-    Cfg.domain_rand.randomize_lag_timesteps = False
-    Cfg.control.control_type = "actuator_net"
+    # Cfg.domain_rand.lag_timesteps = 0
+    # Cfg.domain_rand.randomize_lag_timesteps = False
+    # Cfg.control.control_type = "actuator_net"
   
 
     from go1_gym.envs.wrappers.history_wrapper import HistoryWrapper
@@ -130,7 +123,7 @@ def play_go1(headless=True):
              "bounding": [0, 0.5, 0],
              "pacing": [0, 0, 0.5]}
 
-    x_vel_cmd, y_vel_cmd, yaw_vel_cmd = 0.0, 0.0, 0.0
+    x_vel_cmd, y_vel_cmd, yaw_vel_cmd = 0.5, 0.0, 0.0
     # body_height_cmd = 0.0
     # step_frequency_cmd = 3.0
     # gait = torch.tensor(gaits["trotting"])
