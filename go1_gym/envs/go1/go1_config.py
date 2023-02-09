@@ -37,9 +37,9 @@ def config_go1(Cnfg: Union[Cfg, Meta]):
     _.decimation = 1
 
     _ = Cnfg.asset
-    #_.file = '{MINI_GYM_ROOT_DIR}/resources/robots/go1/urdf/go1.urdf'
+    _.file = '{MINI_GYM_ROOT_DIR}/resources/robots/go1/urdf/go1.urdf'
    #_.file = '{MINI_GYM_ROOT_DIR}/resources/robots/a1/urdf/a1_unitree_modified_no_joint_dynamics.urdf'
-    _.file = '{MINI_GYM_ROOT_DIR}/resources/robots/a1/urdf/a1_unitree.urdf'
+   # _.file = '{MINI_GYM_ROOT_DIR}/resources/robots/a1/urdf/a1_unitree.urdf'
     _.foot_name = "foot"
     _.penalize_contacts_on = ["thigh", "calf"]
     _.terminate_after_contacts_on = ["base"]

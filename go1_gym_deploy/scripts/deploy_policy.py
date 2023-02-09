@@ -24,14 +24,16 @@ def load_and_run_policy(label, experiment_name, max_vel=1.0, max_yaw_vel=1.0):
         pkl_cfg = pkl.load(file)
         print(pkl_cfg.keys())
         cfg = pkl_cfg["Cfg"]
-        print(cfg.keys())
+        
     cfg['control']['action_scale'] = 9 
     cfg['control']['decimation'] = 1
+    cfg['env']['num_observations'] = 48
+    cfg['normalization']['clip_actions'] = 30
+
+    print(cfg.keys())
+
 
     check = cfg
-
-
-
 
     se = StateEstimator(lc)
 
@@ -69,6 +71,7 @@ def load_policy(logdir):
     adaptation_module = torch.jit.load(logdir + '/checkpoints/adaptation_module_latest.jit')
 
     def policy(obs, info):
+
         i = 0
         #latent = adaptation_module.forward(obs["obs_history"].to('cpu'))
         action = body.forward(obs["obs_history"].to('cpu'))
