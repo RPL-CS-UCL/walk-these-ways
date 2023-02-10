@@ -80,30 +80,34 @@ class DeploymentRunner:
 
                 print(f"About to calibrate; the robot will stand [Press R2 to calibrate]")
                 while wait:
-                    self.button_states = self.command_profile.get_buttons()
+                    self.button_states= self.command_profile.get_buttons()
                     if self.command_profile.state_estimator.right_lower_right_switch_pressed:
                         self.command_profile.state_estimator.right_lower_right_switch_pressed = False
                         break
 
-                cal_action = np.zeros((agent.num_envs, agent.num_actions))
+                cal_action = np.ezros((agent.num_envs, agent.num_actions))
                 target_sequence = []
                 target = joint_pos - nominal_joint_pos
+      
                 while np.max(np.abs(target - final_goal)) > 0.01:
                     target -= np.clip((target - final_goal), -0.05, 0.05)
                     target_sequence += [copy.deepcopy(target)]
+
+
+
                 for target in target_sequence:
                     next_target = target
                     if isinstance(agent.cfg, dict):
-                        hip_reduction = agent.cfg["control"]["hip_scale_reduction"]
+                        #hip_reduction = agent.cfg["control"]["hip_scale_reduction"]
                         action_scale = agent.cfg["control"]["action_scale"]
                     else:
-                        hip_reduction = agent.cfg.control.hip_scale_reduction
+                        #hip_reduction = agent.cfg.control.hip_scale_reduction
                         action_scale = agent.cfg.control.action_scale
 
-                    next_target[[0, 3, 6, 9]] /= hip_reduction
+                    #next_target[[0, 3, 6, 9]] /= hip_reduction
                     next_target = next_target / action_scale
-                    cal_action[:, 0:12] = next_target
-                    agent.step(torch.from_numpy(cal_action))
+                    cal_action = next_target
+                    agent.step(torch.from_numpy(cal_action,wait), wait=wait)
                     agent.get_obs()
                     time.sleep(0.05)
 

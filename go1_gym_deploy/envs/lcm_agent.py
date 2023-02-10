@@ -104,6 +104,7 @@ class LCMAgent():
         self.body_angular_vel = np.zeros(3)
         self.joint_pos_target = np.zeros(12)
         self.joint_vel_target = np.zeros(12)
+        self.send_command = np.zeros(12)
         self.torques = np.zeros(12)
         self.contact_state = np.ones(4)
 
@@ -190,32 +191,40 @@ class LCMAgent():
     def get_privileged_observations(self):
         return None
 
-    def publish_action(self, action, hard_reset=False):
+    def publish_action(self, action, hard_reset=False, wait=False):
 
         command_for_robot = pd_tau_targets_lcmt()
+        
+        if wait==True:
+            ## POSITION CONTROL 
+            self.joint_pos_target = \
+                (action.detach().cpu().numpy() * self.cfg["control"]["action_scale"]).flatten()
+            self.joint_pos_target[[0, 3, 6, 9]] *= self.cfg["control"]["hip_scale_reduction"]
+            # self.joint_pos_target[[0, 3, 6, 9]] *= -1
+            self.joint_pos_target = self.joint_pos_target
+            self.joint_pos_target += self.default_dof_pos
+            joint_pos_target = self.joint_pos_target[self.joint_idxs]
+            self.joint_vel_target = np.zeros(12)
+            print(f'cjp {self.joint_pos_target}')
 
 
-        ## POSITION CONTROL 
+#
+            command_for_robot.q_des = self.joint_vel_target 
+            command_for_robot.tau_ff = np.zeros(12)
+        
+        
+        else: 
 
-        # self.joint_pos_target = \
-        #     (action[0, :12].detach().cpu().numpy() * self.cfg["control"]["action_scale"]).flatten()
-        # self.joint_pos_target[[0, 3, 6, 9]] *= self.cfg["control"]["hip_scale_reduction"]
-        # # self.joint_pos_target[[0, 3, 6, 9]] *= -1
-        # self.joint_pos_target = self.joint_pos_target
-        # self.joint_pos_target += self.default_dof_pos
-        # joint_pos_target = self.joint_pos_target[self.joint_idxs]
-        # self.joint_vel_target = np.zeros(12)
-        # # print(f'cjp {self.joint_pos_target}')
+            ## TORQUE CONTROL 
+            self.torques = \
+            (action.detach().cpu().numpy() * self.cfg["control"]["action_scale"]).flatten()
+            torques = self.joint_pos_target[self.joint_idxs]
 
-        ## TORQUE CONTROL 
-        self.torques = \
-        (action[0, :12].detach().cpu().numpy() * self.cfg["control"]["action_scale"]).flatten()
-        torques = self.joint_pos_target[self.joint_idxs]
-        self.joint_vel_target = np.zeros(12)
-        # print(f'cjp {self.joint_pos_target}')
 
-        command_for_robot.q_des = np.zeros(12)
-        command_for_robot.qd_des = self.joint_vel_target
+            command_for_robot.q_des = np.zeros(12)
+            command_for_robot.tau_ff = torques
+
+        command_for_robot.qd_des = np.zeros(12)
         command_for_robot.kp = self.p_gains
         command_for_robot.kd = self.d_gains
         command_for_robot.tau_ff = torques
@@ -242,11 +251,11 @@ class LCMAgent():
     def reset_gait_indices(self):
         self.gait_indices = torch.zeros(self.num_envs, dtype=torch.float)
 
-    def step(self, actions, hard_reset=False):
+    def step(self, actions, hard_reset=False, wait=False):
         clip_actions = self.cfg["normalization"]["clip_actions"]
-        self.last_actions = self.actions[:]
-        self.actions = torch.clip(actions[0:1, :], -clip_actions, clip_actions)
-        self.publish_action(self.actions, hard_reset=hard_reset)
+        self.last_actions = self.actions
+        self.actions = torch.clip(actions, -clip_actions, clip_actions)
+        self.publish_action(self.actions, hard_reset=hard_reset, wait=wait)
         time.sleep(max(self.dt - (time.time() - self.time), 0))
         if self.timestep % 100 == 0: print(f'frq: {1 / (time.time() - self.time)} Hz');
         self.time = time.time()
