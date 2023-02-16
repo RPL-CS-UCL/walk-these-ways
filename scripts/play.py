@@ -19,8 +19,8 @@ torques_save = []
 
 def load_policy(logdir):
     #body = torch.jit.load(logdir + '/checkpoints/body_latest.jit')
-    #body = torch.jit.load(logdir + '/checkpoints/traced_A1_NN_plane_30_nd.pt')
-    body = torch.jit.load(logdir + '/checkpoints/traced_A1_NN_working.jit')
+    body = torch.jit.load(logdir + '/checkpoints/traced_A1_NN_plane_30_nd.pt')
+    #body = torch.jit.load(logdir + '/checkpoints/traced_A1_plane_30_nd.pt')
     import os
     adaptation_module = torch.jit.load(logdir + '/checkpoints/adaptation_module_latest.jit')
 
