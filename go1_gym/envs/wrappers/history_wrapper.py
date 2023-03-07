@@ -9,8 +9,9 @@ class HistoryWrapper(gym.Wrapper):
         self.env = env
 
         self.obs_history_length = self.env.cfg.env.num_observation_history
+        self.num_obs_history = self.obs_history_length * self.num_obs
 
-        self.num_obs_history = 48 #self.obs_history_length * self.num_obs
+        self.obs_history_length * self.num_obs
         self.obs_history = torch.zeros(self.env.num_envs, self.num_obs_history, dtype=torch.float,
                                        device=self.env.device, requires_grad=False)
         self.num_privileged_obs = self.num_privileged_obs
