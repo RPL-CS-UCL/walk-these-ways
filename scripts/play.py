@@ -15,8 +15,9 @@ from go1_gym.envs.go1.velocity_tracking import VelocityTrackingEasyEnv
 from tqdm import tqdm
 
 def load_policy(logdir):
-    body = torch.jit.load(logdir + '/checkpoints/traced_A1_NN_working.jit')
-    body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_200_4_curr_nd.jit')
+    #body = torch.jit.load(logdir + '/checkpoints/traced_A1_NN_working.jit')
+    #body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_200_4_curr_nd.jit')
+    body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_500_curric_nd.jit')
     import os
     #adaptation_module = torch.jit.load(logdir + '/checkpoints/adaptation_module_latest.jit')
 
@@ -49,19 +50,19 @@ def load_env(label, headless=False):
                     setattr(getattr(Cfg, key), key2, value2)
 
     # turn off DR for evaluation script
-    # Cfg.domain_rand.push_robots = False
-    # Cfg.domain_rand.randomize_friction = False
-    # Cfg.domain_rand.randomize_gravity = False
-    # Cfg.domain_rand.randomize_restitution = False
-    # Cfg.domain_rand.randomize_motor_offset = False
-    # Cfg.domain_rand.randomize_motor_strength = False
-    # Cfg.domain_rand.randomize_friction_indep = False
-    # Cfg.domain_rand.randomize_ground_friction = False
-    # Cfg.domain_rand.randomize_base_mass = False
-    # Cfg.domain_rand.randomize_Kd_factor = False
-    # Cfg.domain_rand.randomize_Kp_factor = False
-    # Cfg.domain_rand.randomize_joint_friction = False
-    # Cfg.domain_rand.randomize_com_displacement = False
+    Cfg.domain_rand.push_robots = False
+    Cfg.domain_rand.randomize_friction = False
+    Cfg.domain_rand.randomize_gravity = False
+    Cfg.domain_rand.randomize_restitution = False
+    Cfg.domain_rand.randomize_motor_offset = False
+    Cfg.domain_rand.randomize_motor_strength = False
+    Cfg.domain_rand.randomize_friction_indep = False
+    Cfg.domain_rand.randomize_ground_friction = False
+    Cfg.domain_rand.randomize_base_mass = False
+    Cfg.domain_rand.randomize_Kd_factor = False
+    Cfg.domain_rand.randomize_Kp_factor = False
+    Cfg.domain_rand.randomize_joint_friction = False
+    Cfg.domain_rand.randomize_com_displacement = False
     Cfg.sim.dt = 0.002
 
     Cfg.env.num_recording_envs = 1
@@ -113,7 +114,7 @@ def play_go1(headless=True):
              "bounding": [0, 0.5, 0],
              "pacing": [0, 0, 0.5]}
 
-    x_vel_cmd, y_vel_cmd, yaw_vel_cmd = 1.5, 0.0, 0.0
+    x_vel_cmd, y_vel_cmd, yaw_vel_cmd = 1.0, 0.0, 0.0
     body_height_cmd = 0.0
     step_frequency_cmd = 3.0
     gait = torch.tensor(gaits["trotting"])
