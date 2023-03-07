@@ -31,6 +31,7 @@ def load_policy(logdir):
 
 def load_env(label, headless=False):
     dirs = glob.glob(f"../runs/{label}/*")
+    
     logdir = sorted(dirs)[0]
 
     with open(logdir + "/parameters.pkl", 'rb') as file:
@@ -58,6 +59,7 @@ def load_env(label, headless=False):
     Cfg.domain_rand.randomize_Kp_factor = False
     Cfg.domain_rand.randomize_joint_friction = False
     Cfg.domain_rand.randomize_com_displacement = False
+    Cfg.sim.dt = 0.002
 
     Cfg.env.num_recording_envs = 1
     Cfg.env.num_envs = 1
@@ -71,6 +73,7 @@ def load_env(label, headless=False):
     Cfg.domain_rand.lag_timesteps = 6
     Cfg.domain_rand.randomize_lag_timesteps = True
     Cfg.control.control_type = "actuator_net"
+    Cfg.control.control_type = "Τ"
 
     from go1_gym.envs.wrappers.history_wrapper import HistoryWrapper
 

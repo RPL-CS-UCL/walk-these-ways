@@ -90,6 +90,8 @@ pip3 install torch==1.10.0+cu113 torchvision==0.11.1+cu113 torchaudio==0.10.0+cu
 
 In this repository, run `pip install -e .`
 
+If installation fails due to clashing dependancies comment out line 16 of the setup.py script and run the command again.  
+
 ### Verifying the Installation
 
 If everything is installed correctly, you should be able to run the test script with:
@@ -202,6 +204,14 @@ Now, run the following commands on the robot's onboard computer:
 
 ```
 cd ~/go1_gym/go1_gym_deploy/installer
+sudo chmod +x ./install_deployment_code.sh
+./install_deployment_code.sh
+```
+
+If there is an error that the deployment_image.tar is not found run the following commad: 
+
+```
+sudo mv ../scripts/deployment_image.tar ./"
 ./install_deployment_code.sh
 ```
 
@@ -214,17 +224,50 @@ Place the robot into damping mode. The control sequence is: [L1+B], [L1+A], [L1+
 
 Now, ssh to `unitree@192.168.123.15` and run the following two commands to start the controller. <b>This will operate the robot in low-level control mode. Make sure your Go1 is hung up.</b>
 
+Before running the code you need to make sure the robot is connected to the internet:
+In the host computer make sure that it is connected to eduroam network and then run: 
+```
+ifconfig 
+```
+
+find the IP address of the host computer. 
+
+ 
+Now, ssh to `unitree@192.168.123.15`  and run the following commad: `sudo route add default gw 192.168.123.162`. Open the browser inside the robots computer to ensure that there is connection. 
+
+
+Now you are ready to run the controller. Place the robot into damping mode. The control sequence is: [L1+B], [L1+A], [L1+L2+START]. After this, the robot should sit on the ground and the joints should move freely.
+
+Run the following two commands to start the controller. <b>This will operate the robot in low-level control mode. Make sure your Go1 is hung up.</b>
+
 First:
 ```
 cd ~/go1_gym/go1_gym_deploy/autostart
+sudo chmod +x ./start_unitree_sdk.sh
 ./start_unitree_sdk.sh
 ```
+
 
 Second:
 ```
 cd ~/go1_gym/go1_gym_deploy/docker
 sudo make autostart
 ```
+
+After running this command the container with the name foxy_controller will be build. <b> This will only work if the command is run on  a jetson computer with intenet connection. </b> . 
+To make sure the container was successfully build, run the command `sudo docker dps` and the name foxy_controller should appear. 
+
+VS Studio: 
+You now need to export the content od the container into VS studio to be able to manipulate the scripts. You will need to install the docker extension - refer to https://code.visualstudio.com/docs/containers/overview for details. 
+
+Open the docker extension and click the option "Attach to Running Container" and chose foxy_container. 
+The follow the following commands into the VS terminal. 
+
+`cd issac_go1/go1_gym python3 setup.py install`
+`cd ..`
+
+The open the folder  go1_gym/go1_gym_deploy/scripts and run the deploy_policy.py script. This script will run the policy dirrectly to the robot. 
+
 
 The robot will wait for you to press [R2], then calibrate, then wait for a second press of [R2] before running the control loop.
 
