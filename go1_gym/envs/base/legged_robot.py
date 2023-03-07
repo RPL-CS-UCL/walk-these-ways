@@ -13,7 +13,7 @@ from go1_gym import MINI_GYM_ROOT_DIR
 from go1_gym.envs.base.base_task import BaseTask
 from go1_gym.utils.math_utils import quat_apply_yaw, wrap_to_pi, get_scale_shift
 from go1_gym.utils.terrain import Terrain
-from go1_gym.envs.base.legged_robot_config import Cfg
+from .legged_robot_config import Cfg
 
 
 class LeggedRobot(BaseTask):
@@ -73,8 +73,6 @@ class LeggedRobot(BaseTask):
         self.render_gui()
         for _ in range(self.cfg.control.decimation):
             self.torques = self._compute_torques(self.actions).view(self.torques.shape)
-
-
             self.gym.set_dof_actuation_force_tensor(self.sim, gymtorch.unwrap_tensor(self.torques))
             self.gym.simulate(self.sim)
             # if self.device == 'cpu':
@@ -301,6 +299,7 @@ class LeggedRobot(BaseTask):
         self.command_sums["ang_vel_residual"] += (self.base_ang_vel[:, 2] - self.commands[:, 2]) ** 2
         self.command_sums["ep_timesteps"] += 1
 
+
     def compute_observations(self):
 
 
@@ -325,13 +324,13 @@ class LeggedRobot(BaseTask):
                                   self.dof_vel[:, :self.num_actuated_dof] * self.obs_scales.dof_vel,
                                   self.actions
                                   ), dim=-1)
-        # if self.cfg.env.observe_command and not self.cfg.env.observe_height_command:
-        #     self.obs_buf = torch.cat((self.projected_gravity,
-        #                               self.commands[:, :3] * self.commands_scale,
-        #                               (self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos,
-        #                               self.dof_vel * self.obs_scales.dof_vel,
-        #                               self.actions
-        #                               ), dim=-1)
+        if self.cfg.env.observe_command and not self.cfg.env.observe_height_command:
+            self.obs_buf = torch.cat((self.projected_gravity,
+                                      self.commands * self.commands_scale,
+                                      (self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos,
+                                      self.dof_vel * self.obs_scales.dof_vel,
+                                      self.actions
+                                      ), dim=-1)
 
         if self.cfg.env.observe_command:
             self.obs_buf = torch.cat((self.projected_gravity,
@@ -930,41 +929,54 @@ class LeggedRobot(BaseTask):
             actions (torch.Tensor): Actions
 
         Returns:
-        #     [torch.Tensor]: Torques sent to the simulation
-        # """
-        # # pd controller
-        # actions_scaled = actions[:, :12] * self.cfg.control.action_scale
-        # actions_scaled[:, [0, 3, 6, 9]] *= self.cfg.control.hip_scale_reduction  # scale down hip flexion range
+            [torch.Tensor]: Torques sent to the simulation
+        """
+        # pd controller
+        # self.cfg.control.action_scale =9
+        actions_scaled = actions * self.cfg.control.action_scale
+        #actions_scaled[:, [0, 3, 6, 9]] *= self.cfg.control.hip_scale_reduction 
+        # print(self.cfg.control.action_scale) # scale down hip flexion range
 
-        # if self.cfg.domain_rand.randomize_lag_timesteps:
-        #     self.lag_buffer = self.lag_buffer[1:] + [actions_scaled.clone()]
-        #     self.joint_pos_target = self.lag_buffer[0] + self.default_dof_pos
-        # else:
-        #     self.joint_pos_target = actions_scaled + self.default_dof_pos
+        if self.cfg.domain_rand.randomize_lag_timesteps:
+            self.lag_buffer = self.lag_buffer[1:] + [actions_scaled.clone()]
+            self.joint_pos_target = self.lag_buffer[0] + self.default_dof_pos
+        else:
+            self.joint_pos_target = actions_scaled + self.default_dof_pos
 
-        # control_type = self.cfg.control.control_type
+        control_type = self.cfg.control.control_type
 
-        # if control_type == "actuator_net":
-        #     self.joint_pos_err = self.dof_pos - self.joint_pos_target + self.motor_offsets
-        #     self.joint_vel = self.dof_vel
-        #     torques = self.actuator_network(self.joint_pos_err, self.joint_pos_err_last, self.joint_pos_err_last_last,
-        #                                     self.joint_vel, self.joint_vel_last, self.joint_vel_last_last)
-        #     self.joint_pos_err_last_last = torch.clone(self.joint_pos_err_last)
-        #     self.joint_pos_err_last = torch.clone(self.joint_pos_err)
-        #     self.joint_vel_last_last = torch.clone(self.joint_vel_last)
-        #     self.joint_vel_last = torch.clone(self.joint_vel)
-        # elif control_type == "P":
-        #     torques = self.p_gains * self.Kp_factors * (
-        #             self.joint_pos_target - self.dof_pos + self.motor_offsets) - self.d_gains * self.Kd_factors * self.dof_vel
-        # else:
-        #     raise NameError(f"Unknown controller type: {control_type}")
-
-        # torques = torques * self.motor_strengths
-        self.cfg.control.action_scale  = 9
-
-        torques =  self.cfg.control.action_scale * self.actions
+        if control_type == "actuator_net":
+            self.joint_pos_err = self.dof_pos - self.joint_pos_target + self.motor_offsets
+            self.joint_vel = self.dof_vel
+            torques = self.actuator_network(self.joint_pos_err, self.joint_pos_err_last, self.joint_pos_err_last_last,
+                                            self.joint_vel, self.joint_vel_last, self.joint_vel_last_last)
+            self.joint_pos_err_last_last = torch.clone(self.joint_pos_err_last)
+            self.joint_pos_err_last = torch.clone(self.joint_pos_err)
+            self.joint_vel_last_last = torch.clone(self.joint_vel_last)
+            self.joint_vel_last = torch.clone(self.joint_vel)
+            
+        elif control_type == "P":
+            torques = self.p_gains * self.Kp_factors * (
+                    self.joint_pos_target - self.dof_pos + self.motor_offsets) - self.d_gains * self.Kd_factors * self.dof_vel
+        
 
 
+        elif control_type == 'T':  
+            torques =  actions_scaled
+            
+        
+        else:
+            torques =  actions_scaled
+
+            # raise NameError(f"Unknown controller type: {control_type}")
+        
+         
+
+
+        torques = torques * self.motor_strengths
+       
+
+       
         return torch.clip(torques, -self.torque_limits, self.torque_limits)
 
     def _reset_dofs(self, env_ids, cfg):

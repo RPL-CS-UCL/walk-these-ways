@@ -3,7 +3,6 @@ import isaacgym
 assert isaacgym
 import torch
 import numpy as np
-import os
 
 import glob
 import pickle as pkl
@@ -15,37 +14,29 @@ from go1_gym.envs.go1.velocity_tracking import VelocityTrackingEasyEnv
 
 from tqdm import tqdm
 
-torques_save = []
-
 def load_policy(logdir):
-    #body = torch.jit.load(logdir + '/checkpoints/body_latest.jit')
-    body = torch.jit.load(logdir + '/checkpoints/traced_A1_NN_plane_30_nd.pt')
-    #body = torch.jit.load(logdir + '/checkpoints/traced_A1_plane_30_nd.pt')
+    body = torch.jit.load(logdir + '/checkpoints/traced_A1_NN_working.jit')
+    body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_200_4_curr_nd.jit')
     import os
-    adaptation_module = torch.jit.load(logdir + '/checkpoints/adaptation_module_latest.jit')
+    #adaptation_module = torch.jit.load(logdir + '/checkpoints/adaptation_module_latest.jit')
 
     def policy(obs, info={}):
         i = 0
         #latent = adaptation_module.forward(obs["obs_history"].to('cpu'))
-        #actions = body.forward(torch.cat((obs["obs_history"].to('cpu'), latent), dim=-1))
-
-        
-        #info['latent'] = latent
         body.eval()
-        actions = body.forward(obs["obs_history"].to('cpu'))
-        #actions = body.forward(obs["obs_history"].to('cpu'))
-        actions = torch.unsqueeze(actions, 0)
-
-
-
-        return actions
+        action = body.forward(obs["obs_history"].to('cpu'))
+        action = torch.unsqueeze(action, 0)
+        #info['latent'] = latent
+        return action
 
     return policy
 
 
 def load_env(label, headless=False):
     dirs = glob.glob(f"../runs/{label}/*")
-    logdir =f"runs/{label}/025417.456545"
+    
+    logdir = "runs/"+label+"/025417.456545"
+
     with open(logdir + "/parameters.pkl", 'rb') as file:
         pkl_cfg = pkl.load(file)
         print(pkl_cfg.keys())
@@ -71,25 +62,24 @@ def load_env(label, headless=False):
     # Cfg.domain_rand.randomize_Kp_factor = False
     # Cfg.domain_rand.randomize_joint_friction = False
     # Cfg.domain_rand.randomize_com_displacement = False
+    Cfg.sim.dt = 0.002
 
     Cfg.env.num_recording_envs = 1
     Cfg.env.num_envs = 1
     Cfg.terrain.num_rows = 5
     Cfg.terrain.num_cols = 5
-    # Cfg.terrain.border_size = 0
+    Cfg.terrain.border_size = 0
     Cfg.terrain.center_robots = True
-    # Cfg.terrain.center_span = 1
-    #Cfg.terrain.teleport_robots = True
-    Cfg.control.action_scale = 9
-    # Cfg.commands.limit_vel_x = [0.0, 0.0]
-    # Cfg.commands.limit_vel_y = [0.0, 0.0]
-    # Cfg.commands.limit_vel_yaw = [0.0, 0.0]
-    Cfg.sim.dt =0.002
+    Cfg.terrain.center_span = 1
+    Cfg.terrain.teleport_robots = True
 
-    # Cfg.domain_rand.lag_timesteps = 0
-    # Cfg.domain_rand.randomize_lag_timesteps = False
-    # Cfg.control.control_type = "actuator_net"
-  
+    Cfg.domain_rand.lag_timesteps = 6
+    Cfg.domain_rand.randomize_lag_timesteps = True
+    Cfg.control.decimation = 4 
+    Cfg.control.control_type = "P"
+
+    if Cfg.control.control_type == "Τ":
+        Cfg.control.action_scale = 9 
 
     from go1_gym.envs.wrappers.history_wrapper import HistoryWrapper
 
@@ -123,44 +113,39 @@ def play_go1(headless=True):
              "bounding": [0, 0.5, 0],
              "pacing": [0, 0, 0.5]}
 
-    x_vel_cmd, y_vel_cmd, yaw_vel_cmd = 0.5, 0.0, 0.0
-    # body_height_cmd = 0.0
-    # step_frequency_cmd = 3.0
-    # gait = torch.tensor(gaits["trotting"])
-    # footswing_height_cmd = 0.08
-    # pitch_cmd = 0.0
-    # roll_cmd = 0.0
-    # stance_width_cmd = 0.25
+    x_vel_cmd, y_vel_cmd, yaw_vel_cmd = 1.5, 0.0, 0.0
+    body_height_cmd = 0.0
+    step_frequency_cmd = 3.0
+    gait = torch.tensor(gaits["trotting"])
+    footswing_height_cmd = 0.08
+    pitch_cmd = 0.0
+    roll_cmd = 0.0
+    stance_width_cmd = 0.25
 
     measured_x_vels = np.zeros(num_eval_steps)
     target_x_vels = np.ones(num_eval_steps) * x_vel_cmd
     joint_positions = np.zeros((num_eval_steps, 12))
-    torques = np.zeros((num_eval_steps, 12))
 
     obs = env.reset()
 
     for i in tqdm(range(num_eval_steps)):
         with torch.no_grad():
             actions = policy(obs)
-        env.commands[:, 0] = abs(x_vel_cmd)
+        env.commands[:, 0] = x_vel_cmd
         env.commands[:, 1] = y_vel_cmd
         env.commands[:, 2] = yaw_vel_cmd
-        # env.commands[:, 3] = body_height_cmd
-        # env.commands[:, 4] = step_frequency_cmd
-        # env.commands[:, 5:8] = gait
-        # env.commands[:, 8] = 0.5
-        # env.commands[:, 9] = footswing_height_cmd
-        # env.commands[:, 10] = pitch_cmd
-        # env.commands[:, 11] = roll_cmd
-        # env.commands[:, 12] = stance_width_cmd
+        env.commands[:, 3] = body_height_cmd
+        env.commands[:, 4] = step_frequency_cmd
+        env.commands[:, 5:8] = gait
+        env.commands[:, 8] = 0.5
+        env.commands[:, 9] = footswing_height_cmd
+        env.commands[:, 10] = pitch_cmd
+        env.commands[:, 11] = roll_cmd
+        env.commands[:, 12] = stance_width_cmd
         obs, rew, done, info = env.step(actions)
 
         measured_x_vels[i] = env.base_lin_vel[0, 0]
-        joint_positions[i] = actions
-
-    
-        
-
+        joint_positions[i] = env.dof_pos[0, :].cpu()
 
     # plot target and measured forward velocity
     from matplotlib import pyplot as plt
@@ -172,10 +157,10 @@ def play_go1(headless=True):
     axs[0].set_xlabel("Time (s)")
     axs[0].set_ylabel("Velocity (m/s)")
 
-    axs[1].plot(np.linspace(0, num_eval_steps * env.dt, num_eval_steps), joint_positions[:,1], linestyle="-", label="Measured")
+    axs[1].plot(np.linspace(0, num_eval_steps * env.dt, num_eval_steps), joint_positions, linestyle="-", label="Measured")
     axs[1].set_title("Joint Positions")
     axs[1].set_xlabel("Time (s)")
-    axs[1].set_ylabel("Torques (Nm)")
+    axs[1].set_ylabel("Joint Position (rad)")
 
     plt.tight_layout()
     plt.show()
