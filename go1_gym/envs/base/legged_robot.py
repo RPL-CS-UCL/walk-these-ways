@@ -306,7 +306,9 @@ class LeggedRobot(BaseTask):
         self.command_sums["ep_timesteps"] += 1
 
 
+
     def compute_observations_mania(self):
+
 
 
         self.obs_buf= torch.cat((self.base_lin_vel * self.obs_scales.lin_vel,
@@ -960,16 +962,16 @@ class LeggedRobot(BaseTask):
             self.joint_vel_last_last = torch.clone(self.joint_vel_last)
             self.joint_vel_last = torch.clone(self.joint_vel)
             
-        elif control_type == 'P':
+
+        elif control_type == "P":
+
             torques = self.p_gains * self.Kp_factors * (
                     self.joint_pos_target - self.dof_pos + self.motor_offsets) - self.d_gains * self.Kd_factors * self.dof_vel
         
 
-
         elif control_type == 'T': 
             self.cfg.control.action_scale  = 9 
             actions_scaled = actions * self.cfg.control.action_scale 
-            torques =  actions_scaled
             
         
         else:

@@ -16,16 +16,20 @@ from tqdm import tqdm
 
 def load_policy(logdir):
 
+
     body = torch.jit.load(logdir + '/checkpoints/body_latest.jit')
     body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1_NN_working.jit')
     #body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_200_4_curr_nd.jit')
     #body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_500_curric_nd.jit')
+    #body = torch.jit.load(logdir + '/checkpoints/traced_A1_NN_working.jit')
+    #body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_200_4_curr_nd.jit')
+    body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_500_curric_nd.jit')
 
     import os
     adaptation_module = torch.jit.load(logdir + '/checkpoints/adaptation_module_latest.jit')
 
-    def policy(obs, info={}):
 
+    def policy(obs, info={}):
         repo = 'original'
 
 
@@ -75,7 +79,9 @@ def load_env(label, headless=False):
     Cfg.domain_rand.randomize_Kp_factor = False
     Cfg.domain_rand.randomize_joint_friction = False
     Cfg.domain_rand.randomize_com_displacement = False
+
     #Cfg.sim.dt = 0.005
+
 
     Cfg.env.num_recording_envs = 1
     Cfg.env.num_envs = 1
@@ -88,8 +94,13 @@ def load_env(label, headless=False):
 
     Cfg.domain_rand.lag_timesteps = 6
     Cfg.domain_rand.randomize_lag_timesteps = True
+
     #Cfg.control.decimation = 4 
     Cfg.control.control_type = "actuation_network"
+
+    Cfg.control.decimation = 4 
+    Cfg.control.control_type = "P"
+
 
     if Cfg.control.control_type == "Τ":
         Cfg.control.action_scale = 9 
@@ -135,7 +146,6 @@ def play_go1(headless=True):
     pitch_cmd = 0.0
     roll_cmd = 0.0
     stance_width_cmd = 0.25
-
 
     measured_x_vels = np.zeros(num_eval_steps)
     target_x_vels = np.ones(num_eval_steps) * x_vel_cmd
