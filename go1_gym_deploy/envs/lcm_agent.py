@@ -236,8 +236,13 @@ class LCMAgent():
             command_for_robot.id = -1
 
 
-        #self.torques = (self.joint_pos_target - self.dof_pos) * self.p_gains + (self.joint_vel_target - self.dof_vel) * self.d_gains
-
+        self.torques = (self.joint_pos_target - self.dof_pos) * self.p_gains + (self.joint_vel_target - self.dof_vel) * self.d_gains
+        
+        self.torques_mania = self.p_gains * (self.cfg.control.action_scale * self.actions + self.default_dof_pos - self.dof_pos) - self.d_gains * self.dof_vel
+       
+          
+    
+        
         lc.publish("pd_plustau_targets", command_for_robot.encode())
 
 

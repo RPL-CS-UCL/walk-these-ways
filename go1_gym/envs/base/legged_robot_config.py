@@ -378,6 +378,7 @@ class Cfg(PrefixProto, cli=False):
     class noise(PrefixProto, cli=False):
         add_noise = True
         noise_level = 1.0  # scales other values
+        noise_level_mania = 1.25
 
     class noise_scales(PrefixProto, cli=False):
         dof_pos = 0.01
@@ -392,6 +393,21 @@ class Cfg(PrefixProto, cli=False):
         segmentation_image = 0.0
         rgb_image = 0.0
         depth_image = 0.0
+    
+    class noise_scales_mania(PrefixProto, cli=False):
+        dof_pos = 0.0005
+        dof_vel = 0.01
+        lin_vel = 0.01
+        ang_vel = 0.0001
+        imu = 0.1
+        gravity = 0.00002
+        contact_states = 0.05
+        height_measurements = 0.1
+        friction_measurements = 0.0
+        segmentation_image = 0.0
+        rgb_image = 0.0
+        depth_image = 0.0
+
 
     # viewer camera:
     class viewer(PrefixProto, cli=False):

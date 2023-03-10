@@ -319,6 +319,10 @@ class LeggedRobot(BaseTask):
                                 self.dof_vel * self.obs_scales.dof_vel,
                                 self.actions
                                 ), dim=-1)
+
+         # add noise if needed
+        if self.add_noise:
+            self.obs_buf += (2 * torch.rand_like(self.obs_buf) - 1) * self.noise_scale_vec_mania
    
 
 
@@ -1100,6 +1104,48 @@ class LeggedRobot(BaseTask):
             self.gym.set_actor_root_state_tensor(self.sim, gymtorch.unwrap_tensor(self.root_states))
             self.gym.refresh_actor_root_state_tensor(self.sim)
 
+    
+
+    def _get_noise_scale_vec_mania(self, cfg):
+        """ Sets a vector used to scale the noise added to the observations.
+            [NOTE]: Must be adapted when changing the observations structure
+
+        Args:
+            cfg (Dict): Environment config file
+
+        Returns:
+            [torch.Tensor]: Vector of scales used to multiply a uniform distribution in [-1, 1]
+        """
+        # noise_vec = torch.zeros_like(self.obs_buf[0])
+        self.add_noise = self.cfg.noise.add_noise
+        noise_scales = self.cfg.noise_scales_mania
+        noise_level = self.cfg.noise.noise_level_mania
+        noise_vec = torch.cat((torch.ones(3) * noise_scales.lin_vel * noise_level,
+                               torch.ones(3) * noise_scales.ang_vel * noise_level,
+                               torch.ones(3) * noise_scales.gravity * noise_level,
+                               torch.zeros(3),
+                               torch.ones(
+                                   self.num_actuated_dof) * noise_scales.dof_pos * noise_level,
+                               torch.ones(
+                                   self.num_actuated_dof) * noise_scales.dof_vel * noise_level,
+                               torch.zeros(self.num_actions),
+                               ), dim=0)
+
+        
+
+        noise_vec = noise_vec.to(self.device)
+
+        return noise_vec
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     def _get_noise_scale_vec(self, cfg):
         """ Sets a vector used to scale the noise added to the observations.
             [NOTE]: Must be adapted when changing the observations structure
@@ -1214,7 +1260,10 @@ class LeggedRobot(BaseTask):
             self.height_points = self._init_height_points(torch.arange(self.num_envs, device=self.device), self.cfg)
         self.measured_heights = 0
 
+        
         self.noise_scale_vec = self._get_noise_scale_vec(self.cfg)  # , self.eval_cfg)
+        self.noise_scale_vec_mania= self._get_noise_scale_vec_mania(self.cfg) 
+        
         self.gravity_vec = to_torch(get_axis_params(-1., self.up_axis_idx), device=self.device).repeat(
             (self.num_envs, 1))
         self.forward_vec = to_torch([1., 0., 0.], device=self.device).repeat((self.num_envs, 1))

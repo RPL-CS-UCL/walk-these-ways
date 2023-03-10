@@ -69,16 +69,27 @@ def load_and_run_policy(label, experiment_name, max_vel=1.0, max_yaw_vel=1.0):
 
 def load_policy(logdir):
     body = torch.jit.load(logdir + '/checkpoints/traced_A1_NN_working.jit')
+     # body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_500_4_curric_.jit')
+    body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain.jit')
+    # body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_200_4_plane.jit')
     import os
-    #adaptation_module = torch.jit.load(logdir + '/checkpoints/adaptation_module_latest.jit')
+    adaptation_module = torch.jit.load(logdir + '/checkpoints/adaptation_module_latest.jit')
 
     def policy(obs, info):
+        repo = 'original'
+        
+        if repo == 'original':
+            latent = adaptation_module.forward(obs["obs_history"].to('cpu'))
+            action = body.forward(torch.cat((obs["obs_history"].to('cpu'), latent), dim=-1))
+            info['latent'] = latent
+        else:
+            i = 0
+            body.eval()
+            action = body_mania.forward(obs["obs_history"].to('cpu'))
+            #actions = body.forward(obs["obs_history"].to('cpu'))
+            action = torch.unsqueeze(action, 0)
+    
 
-        i = 0
-        body.eval()
-        action = body.forward(obs["obs_history"].to('cpu'))
-        #actions = body.forward(obs["obs_history"].to('cpu'))
-        action = torch.unsqueeze(action, 0)
 
         return action
        

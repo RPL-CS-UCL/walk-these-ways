@@ -18,15 +18,16 @@ def load_policy(logdir):
 
 
     body = torch.jit.load(logdir + '/checkpoints/body_latest.jit')
-    body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1_NN_working.jit')
+    # body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1_NN_working.jit')
     #body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_200_4_curr_nd.jit')
     #body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_500_curric_nd.jit')
     #body = torch.jit.load(logdir + '/checkpoints/traced_A1_NN_working.jit')
 
     # body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_200_4_curr_nd.jit')
-    # body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_500_4.jit')
-    body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_500_4_curric_.jit')
-    # body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain.jit')
+
+    # body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_500_4_curric_.jit')
+    # body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain.jit')
+    body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_200_4_plane.jit')
 
 
     import os
@@ -34,7 +35,7 @@ def load_policy(logdir):
 
 
     def policy(obs, info={}):
-        repo = 'original'
+        repo = 'mania'
 
 
         if repo == 'original':
@@ -44,7 +45,7 @@ def load_policy(logdir):
             print('in here')
         else:
         
-            action = body_mania.forward(obs["obs_history"].to('cpu'))
+            action = body_mania.forward(obs["obs"].to('cpu'))
             action = torch.unsqueeze(action, 0)
        
 
@@ -100,7 +101,7 @@ def load_env(label, headless=False):
     Cfg.domain_rand.randomize_lag_timesteps = True
 
     #Cfg.control.decimation = 4 
-    Cfg.control.control_type = "actuation_network"
+    Cfg.control.control_type = "P"
 
     Cfg.control.decimation = 4 
     Cfg.control.control_type = "P"
@@ -149,7 +150,7 @@ def play_go1(headless=True):
              "pacing": [0, 0, 0.5]}
 
 
-    x_vel_cmd, y_vel_cmd, yaw_vel_cmd = 0.2, 0.0, 0.0
+    x_vel_cmd, y_vel_cmd, yaw_vel_cmd = 0.5, 0.0, 0.0
 
     body_height_cmd = 0.0
     step_frequency_cmd = 3.0
