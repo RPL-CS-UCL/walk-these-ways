@@ -121,7 +121,13 @@ class LeggedRobot(BaseTask):
         self.compute_reward()
         env_ids = self.reset_buf.nonzero(as_tuple=False).flatten()
         self.reset_idx(env_ids)
-        self.compute_observations()
+
+        if self.cfg.control.control_type == 'actuation_network':
+            self.compute_observations()
+        else:
+            self.compute_observations_mania()
+
+
 
         self.last_last_actions[:] = self.last_actions[:]
         self.last_actions[:] = self.actions[:]
@@ -300,7 +306,9 @@ class LeggedRobot(BaseTask):
         self.command_sums["ep_timesteps"] += 1
 
 
-    def compute_observations(self):
+
+    def compute_observations_mania(self):
+
 
 
         self.obs_buf= torch.cat((self.base_lin_vel * self.obs_scales.lin_vel,
@@ -311,11 +319,10 @@ class LeggedRobot(BaseTask):
                                 self.dof_vel * self.obs_scales.dof_vel,
                                 self.actions
                                 ), dim=-1)
-        check = self.obs_buf
-        mania=1
+   
 
 
-    def compute_observations_old(self):
+    def compute_observations(self):
         """ Computes observations
         """
         self.obs_buf = torch.cat((self.projected_gravity,
@@ -956,8 +963,11 @@ class LeggedRobot(BaseTask):
             self.joint_vel_last_last = torch.clone(self.joint_vel_last)
             self.joint_vel_last = torch.clone(self.joint_vel)
             
+
         elif control_type == "P":
+
             torques_original = self.p_gains * self.Kp_factors * (
+
                     self.joint_pos_target - self.dof_pos + self.motor_offsets) - self.d_gains * self.Kd_factors * self.dof_vel
 
             torques = self.p_gains * (self.cfg.control.action_scale * self.actions + self.default_dof_pos - self.dof_pos) - self.d_gains * self.dof_vel
@@ -966,9 +976,9 @@ class LeggedRobot(BaseTask):
     
                                      
 
-
-        elif control_type == 'T':  
-            torques =  actions_scaled
+        elif control_type == 'T': 
+            self.cfg.control.action_scale  = 9 
+            actions_scaled = actions * self.cfg.control.action_scale 
             
         
         else:

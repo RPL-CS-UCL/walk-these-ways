@@ -15,21 +15,39 @@ from go1_gym.envs.go1.velocity_tracking import VelocityTrackingEasyEnv
 from tqdm import tqdm
 
 def load_policy(logdir):
+
+
+    body = torch.jit.load(logdir + '/checkpoints/body_latest.jit')
+    body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1_NN_working.jit')
+    #body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_200_4_curr_nd.jit')
+    #body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_500_curric_nd.jit')
     #body = torch.jit.load(logdir + '/checkpoints/traced_A1_NN_working.jit')
+
     # body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_200_4_curr_nd.jit')
     # body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_500_4.jit')
     body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_500_4_curric_.jit')
     # body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain.jit')
+
+
     import os
-    #adaptation_module = torch.jit.load(logdir + '/checkpoints/adaptation_module_latest.jit')
+    adaptation_module = torch.jit.load(logdir + '/checkpoints/adaptation_module_latest.jit')
+
 
     def policy(obs, info={}):
-        i = 0
-        #latent = adaptation_module.forward(obs["obs_history"].to('cpu'))
-        body.eval()
-        action = body.forward(obs["obs_history"].to('cpu'))
-        action = torch.unsqueeze(action, 0)
-        #info['latent'] = latent
+        repo = 'original'
+
+
+        if repo == 'original':
+            latent = adaptation_module.forward(obs["obs_history"].to('cpu'))
+            action = body.forward(torch.cat((obs["obs_history"].to('cpu'), latent), dim=-1))
+            info['latent'] = latent
+            print('in here')
+        else:
+        
+            action = body_mania.forward(obs["obs_history"].to('cpu'))
+            action = torch.unsqueeze(action, 0)
+       
+
         return action
 
     return policy
@@ -65,6 +83,7 @@ def load_env(label, headless=False):
     Cfg.domain_rand.randomize_Kp_factor = False
     Cfg.domain_rand.randomize_joint_friction = False
     Cfg.domain_rand.randomize_com_displacement = False
+
     Cfg.sim.dt = 0.005
 
     Cfg.env.num_recording_envs = 1
@@ -76,8 +95,13 @@ def load_env(label, headless=False):
     Cfg.terrain.center_span = 1
     Cfg.terrain.teleport_robots = True
 
-    # Cfg.domain_rand.lag_timesteps = 6
-    # Cfg.domain_rand.randomize_lag_timesteps = False
+
+    Cfg.domain_rand.lag_timesteps = 6
+    Cfg.domain_rand.randomize_lag_timesteps = True
+
+    #Cfg.control.decimation = 4 
+    Cfg.control.control_type = "actuation_network"
+
     Cfg.control.decimation = 4 
     Cfg.control.control_type = "P"
     Cfg.control.stiffness['joint_a'] = 20
@@ -87,6 +111,7 @@ def load_env(label, headless=False):
     Cfg.control.damping['joint_b'] = 0.5
 
  
+
 
     if Cfg.control.control_type == "Τ":
         Cfg.control.action_scale = 9 
@@ -123,7 +148,9 @@ def play_go1(headless=True):
              "bounding": [0, 0.5, 0],
              "pacing": [0, 0, 0.5]}
 
-    x_vel_cmd, y_vel_cmd, yaw_vel_cmd = 0.3, 0.0, 0.0
+
+    x_vel_cmd, y_vel_cmd, yaw_vel_cmd = 0.2, 0.0, 0.0
+
     body_height_cmd = 0.0
     step_frequency_cmd = 3.0
     gait = torch.tensor(gaits["trotting"])

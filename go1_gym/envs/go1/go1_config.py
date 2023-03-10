@@ -27,14 +27,14 @@ def config_go1(Cnfg: Union[Cfg, Meta]):
     }
 
     _ = Cnfg.control
-    _.control_type = 'T'
+    _.control_type = 'actuation_network'
     _.stiffness = {'joint': 20.}  # [N*m/rad]
     _.damping = {'joint': 0.5}  # [N*m*s/rad]
     # action scale: target angle = actionScale * action + defaultAngle
-    _.action_scale = 9
+    _.action_scale = 0.25
     _.hip_scale_reduction = 0.5
     # decimation: Number of control action updates @ sim DT per policy DT
-    _.decimation = 1
+    _.decimation = 4
 
     _ = Cnfg.asset
     _.file = '{MINI_GYM_ROOT_DIR}/resources/robots/go1/urdf/go1.urdf'
