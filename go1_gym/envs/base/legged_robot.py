@@ -307,7 +307,7 @@ class LeggedRobot(BaseTask):
                                 self.base_ang_vel * self.obs_scales.ang_vel,
                                 self.projected_gravity,
                                 self.commands[:,:3] * self.commands_scale[:3],
-                                self.dof_pos * self.obs_scales.dof_pos,
+                                (self.dof_pos)* self.obs_scales.dof_pos,
                                 self.dof_vel * self.obs_scales.dof_vel,
                                 self.actions
                                 ), dim=-1)
@@ -933,6 +933,7 @@ class LeggedRobot(BaseTask):
         """
         # pd controller
         # self.cfg.control.action_scale =9
+        counter = 0 
         actions_scaled = actions * self.cfg.control.action_scale
         #actions_scaled[:, [0, 3, 6, 9]] *= self.cfg.control.hip_scale_reduction 
         # print(self.cfg.control.action_scale) # scale down hip flexion range
@@ -956,9 +957,14 @@ class LeggedRobot(BaseTask):
             self.joint_vel_last = torch.clone(self.joint_vel)
             
         elif control_type == "P":
-            torques = self.p_gains * self.Kp_factors * (
+            torques_original = self.p_gains * self.Kp_factors * (
                     self.joint_pos_target - self.dof_pos + self.motor_offsets) - self.d_gains * self.Kd_factors * self.dof_vel
-        
+
+            torques = self.p_gains * (self.cfg.control.action_scale * self.actions + self.default_dof_pos - self.dof_pos) - self.d_gains * self.dof_vel
+       
+          
+    
+                                     
 
 
         elif control_type == 'T':  
@@ -973,7 +979,7 @@ class LeggedRobot(BaseTask):
          
 
 
-        torques = torques * self.motor_strengths
+        # torques = torques * self.motor_strengths
        
 
        
