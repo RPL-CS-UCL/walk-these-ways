@@ -19,15 +19,16 @@ def load_policy(logdir):
 
     body = torch.jit.load(logdir + '/checkpoints/body_latest.jit')
     # body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1_NN_working.jit')
-    #body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_200_4_curr_nd.jit')
-    #body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_500_curric_nd.jit')
-    #body = torch.jit.load(logdir + '/checkpoints/traced_A1_NN_working.jit')
 
-    # body = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_200_4_curr_nd.jit')
+    # body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_500_curric_nd.jit')
+   
+    # body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_200_4_curr_nd.jit')
 
     # body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_position_500_4_curric_.jit')
     # body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain.jit')
-    body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_200_4_plane.jit')
+    # body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_200_4_plane.jit')
+    body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain_high_torques.jit')
+    #body_mania = torch.jit.load(logdir + '/checkpoints/traced_A1Terrain.jit')
 
 
     import os
@@ -44,10 +45,13 @@ def load_policy(logdir):
             info['latent'] = latent
             print('in here')
         else:
-        
+
+
+            print('obs', obs)
             action = body_mania.forward(obs["obs"].to('cpu'))
             action = torch.unsqueeze(action, 0)
-       
+
+            print('action', action)
 
         return action
 
@@ -78,12 +82,12 @@ def load_env(label, headless=False):
     Cfg.domain_rand.randomize_motor_offset = False
     Cfg.domain_rand.randomize_motor_strength = False
     Cfg.domain_rand.randomize_friction_indep = False
-    Cfg.domain_rand.randomize_ground_friction = False
+    #Cfg.domain_rand.randomize_ground_friction = False
     Cfg.domain_rand.randomize_base_mass = False
     Cfg.domain_rand.randomize_Kd_factor = False
     Cfg.domain_rand.randomize_Kp_factor = False
-    Cfg.domain_rand.randomize_joint_friction = False
-    Cfg.domain_rand.randomize_com_displacement = False
+    #Cfg.domain_rand.randomize_joint_friction = False
+    #Cfg.domain_rand.randomize_com_displacement = False
 
     Cfg.sim.dt = 0.005
 
@@ -97,14 +101,11 @@ def load_env(label, headless=False):
     Cfg.terrain.teleport_robots = True
 
 
-    Cfg.domain_rand.lag_timesteps = 6
-    Cfg.domain_rand.randomize_lag_timesteps = True
+    # Cfg.domain_rand.lag_timesteps = 6
+    # Cfg.domain_rand.randomize_lag_timesteps = True
 
-    #Cfg.control.decimation = 4 
     Cfg.control.control_type = "P"
 
-    Cfg.control.decimation = 4 
-    Cfg.control.control_type = "P"
     Cfg.control.stiffness['joint_a'] = 20
     Cfg.control.stiffness['joint_b'] = 20
 

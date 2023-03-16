@@ -121,11 +121,12 @@ class LeggedRobot(BaseTask):
         self.compute_reward()
         env_ids = self.reset_buf.nonzero(as_tuple=False).flatten()
         self.reset_idx(env_ids)
+        self.compute_observations()
 
-        if self.cfg.control.control_type == 'actuation_network':
-            self.compute_observations()
-        else:
-            self.compute_observations_mania()
+        # if self.cfg.control.control_type == 'actuation_network':
+        #     self.compute_observations()
+        # else:
+        #     self.compute_observations_mania()
 
 
 
@@ -621,12 +622,12 @@ class LeggedRobot(BaseTask):
             self.dof_pos_limits = torch.zeros(self.num_dof, 2, dtype=torch.float, device=self.device,
                                               requires_grad=False)
             self.dof_vel_limits = torch.zeros(self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
-            self.torque_limits = torch.zeros(self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
+            self.torque_limits = torch.ones(self.num_dof, dtype=torch.float, device=self.device, requires_grad=False) *30.
             for i in range(len(props)):
                 self.dof_pos_limits[i, 0] = props["lower"][i].item()
                 self.dof_pos_limits[i, 1] = props["upper"][i].item()
                 self.dof_vel_limits[i] = props["velocity"][i].item()
-                self.torque_limits[i] = props["effort"][i].item()
+                #self.torque_limits[i] = props["effort"][i].item()
                 # soft limits
                 m = (self.dof_pos_limits[i, 0] + self.dof_pos_limits[i, 1]) / 2
                 r = self.dof_pos_limits[i, 1] - self.dof_pos_limits[i, 0]
@@ -970,19 +971,14 @@ class LeggedRobot(BaseTask):
 
         elif control_type == "P":
 
-            torques_original = self.p_gains * self.Kp_factors * (
+            # torques = self.p_gains * self.Kp_factors * ( self.joint_pos_target - self.dof_pos + self.motor_offsets) - self.d_gains * self.Kd_factors * self.dof_vel
 
-                    self.joint_pos_target - self.dof_pos + self.motor_offsets) - self.d_gains * self.Kd_factors * self.dof_vel
-
-            torques = self.p_gains * (self.cfg.control.action_scale * self.actions + self.default_dof_pos - self.dof_pos) - self.d_gains * self.dof_vel
+            torques = self.p_gains * (self.cfg.control.action_scale * self.actions + self.default_dof_pos  - self.dof_pos) - self.d_gains * self.dof_vel   #self.cfg.control.action_scale * self.actions + self.default_dof_pos
        
-          
     
-                                     
-
         elif control_type == 'T': 
             self.cfg.control.action_scale  = 9 
-            actions_scaled = actions * self.cfg.control.action_scale 
+            torques = actions * self.cfg.control.action_scale 
             
         
         else:
@@ -993,7 +989,7 @@ class LeggedRobot(BaseTask):
          
 
 
-        # torques = torques * self.motor_strengths
+        torques = torques * self.motor_strengths
        
 
        

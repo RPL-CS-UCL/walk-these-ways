@@ -27,11 +27,11 @@ def config_go1(Cnfg: Union[Cfg, Meta]):
     }
 
     _ = Cnfg.control
-    _.control_type = 'actuation_network'
+    _.control_type = 'T'
     _.stiffness = {'joint': 20.}  # [N*m/rad]
     _.damping = {'joint': 0.5}  # [N*m*s/rad]
     # action scale: target angle = actionScale * action + defaultAngle
-    _.action_scale = 0.25
+    _.action_scale = 9 
     _.hip_scale_reduction = 0.5
     # decimation: Number of control action updates @ sim DT per policy DT
     _.decimation = 4

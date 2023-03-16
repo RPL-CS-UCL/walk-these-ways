@@ -333,7 +333,7 @@ class Cfg(PrefixProto, cli=False):
 
     class normalization(PrefixProto, cli=False):
         clip_observations = 100.
-        clip_actions = 100.
+        clip_actions = 30.
 
         friction_range = [0.05, 4.5]
         ground_friction_range = [0.05, 4.5]
@@ -416,7 +416,7 @@ class Cfg(PrefixProto, cli=False):
         lookat = [11., 5, 3.]  # [m]
 
     class sim(PrefixProto, cli=False):
-        dt = 0.02
+        dt = 0.002
         substeps = 1
         gravity = [0., 0., -9.81]  # [m/s^2]
         up_axis = 1  # 0 is y, 1 is z
