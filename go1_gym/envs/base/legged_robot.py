@@ -299,22 +299,6 @@ class LeggedRobot(BaseTask):
         self.command_sums["ang_vel_residual"] += (self.base_ang_vel[:, 2] - self.commands[:, 2]) ** 2
         self.command_sums["ep_timesteps"] += 1
 
-
-    def compute_observations_mania(self):
-
-
-        self.obs_buf= torch.cat((self.base_lin_vel * self.obs_scales.lin_vel,
-                                self.base_ang_vel * self.obs_scales.ang_vel,
-                                self.projected_gravity,
-                                self.commands[:,:3] * self.commands_scale[:3],
-                                self.dof_pos * self.obs_scales.dof_pos,
-                                self.dof_vel * self.obs_scales.dof_vel,
-                                self.actions
-                                ), dim=-1)
-        check = self.obs_buf
-        mania=1
-
-
     def compute_observations(self):
         """ Computes observations
         """
@@ -324,13 +308,13 @@ class LeggedRobot(BaseTask):
                                   self.dof_vel[:, :self.num_actuated_dof] * self.obs_scales.dof_vel,
                                   self.actions
                                   ), dim=-1)
-        if self.cfg.env.observe_command and not self.cfg.env.observe_height_command:
-            self.obs_buf = torch.cat((self.projected_gravity,
-                                      self.commands * self.commands_scale,
-                                      (self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos,
-                                      self.dof_vel * self.obs_scales.dof_vel,
-                                      self.actions
-                                      ), dim=-1)
+        # if self.cfg.env.observe_command and not self.cfg.env.observe_height_command:
+        #     self.obs_buf = torch.cat((self.projected_gravity,
+        #                               self.commands[:, :3] * self.commands_scale,
+        #                               (self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos,
+        #                               self.dof_vel * self.obs_scales.dof_vel,
+        #                               self.actions
+        #                               ), dim=-1)
 
         if self.cfg.env.observe_command:
             self.obs_buf = torch.cat((self.projected_gravity,
@@ -932,10 +916,8 @@ class LeggedRobot(BaseTask):
             [torch.Tensor]: Torques sent to the simulation
         """
         # pd controller
-        # self.cfg.control.action_scale =9
         actions_scaled = actions[:, :12] * self.cfg.control.action_scale
-        actions_scaled[:, [0, 3, 6, 9]] *= self.cfg.control.hip_scale_reduction 
-        # print(self.cfg.control.action_scale) # scale down hip flexion range
+        actions_scaled[:, [0, 3, 6, 9]] *= self.cfg.control.hip_scale_reduction  # scale down hip flexion range
 
         if self.cfg.domain_rand.randomize_lag_timesteps:
             self.lag_buffer = self.lag_buffer[1:] + [actions_scaled.clone()]
@@ -954,29 +936,13 @@ class LeggedRobot(BaseTask):
             self.joint_pos_err_last = torch.clone(self.joint_pos_err)
             self.joint_vel_last_last = torch.clone(self.joint_vel_last)
             self.joint_vel_last = torch.clone(self.joint_vel)
-            
         elif control_type == "P":
             torques = self.p_gains * self.Kp_factors * (
                     self.joint_pos_target - self.dof_pos + self.motor_offsets) - self.d_gains * self.Kd_factors * self.dof_vel
-        
-
-
-        elif control_type == 'T':  
-            torques =  actions_scaled
-            
-        
         else:
-            torques =  actions_scaled
-
-            # raise NameError(f"Unknown controller type: {control_type}")
-        
-         
-
+            raise NameError(f"Unknown controller type: {control_type}")
 
         torques = torques * self.motor_strengths
-       
-
-       
         return torch.clip(torques, -self.torque_limits, self.torque_limits)
 
     def _reset_dofs(self, env_ids, cfg):

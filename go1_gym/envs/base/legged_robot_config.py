@@ -207,7 +207,7 @@ class Cfg(PrefixProto, cli=False):
         default_joint_angles = {"joint_a": 0., "joint_b": 0.}
 
     class control(PrefixProto, cli=False):
-        control_type = 'T' #'P' #'actuation_network'  # P: position, V: velocity, T: torques
+        control_type = 'actuator_net' #'P'  # P: position, V: velocity, T: torques
         # PD Drive parameters:
         stiffness = {'joint_a': 10.0, 'joint_b': 15.}  # [N*m/rad]
         damping = {'joint_a': 1.0, 'joint_b': 1.5}  # [N*m*s/rad]
@@ -400,7 +400,7 @@ class Cfg(PrefixProto, cli=False):
         lookat = [11., 5, 3.]  # [m]
 
     class sim(PrefixProto, cli=False):
-        dt = 0.002
+        dt = 0.005
         substeps = 1
         gravity = [0., 0., -9.81]  # [m/s^2]
         up_axis = 1  # 0 is y, 1 is z

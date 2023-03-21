@@ -29,7 +29,7 @@ def train_go1(headless=True):
 
     Cfg.domain_rand.lag_timesteps = 6
     Cfg.domain_rand.randomize_lag_timesteps = True
-    Cfg.control.control_type = "T"
+    Cfg.control.control_type = "actuator_net"
 
     Cfg.domain_rand.randomize_rigids_after_start = False
     Cfg.env.priv_observe_motion = False
@@ -46,7 +46,7 @@ def train_go1(headless=True):
     Cfg.env.priv_observe_base_mass = False
     Cfg.domain_rand.added_mass_range = [-1.0, 3.0]
     Cfg.domain_rand.randomize_gravity = True
-    Cfg.domain_rand.gravity_range = [-2.0, 2.0]
+    Cfg.domain_rand.gravity_range = [-1.0, 1.0]
     Cfg.domain_rand.gravity_rand_interval_s = 8.0
     Cfg.domain_rand.gravity_impulse_duration = 0.99
     Cfg.env.priv_observe_gravity = False
@@ -213,7 +213,7 @@ def train_go1(headless=True):
     env = HistoryWrapper(env)
     gpu_id = 0
     runner = Runner(env, device=f"cuda:{gpu_id}")
-    runner.learn(num_learning_iterations=15000, init_at_random_ep_len=False, eval_freq=500)
+    runner.learn(num_learning_iterations=100000, init_at_random_ep_len=True, eval_freq=100)
 
 
 if __name__ == '__main__':
